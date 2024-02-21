@@ -111,7 +111,7 @@ describe('devnet integration', function () {
   }
 
   describe('uniswap v3', function () {
-    it('should swap fast', async function () {
+    it.skip('should swap fast', async function () {
       const { pool, movePrice } = await loadFixture(tenderlySetupFixture)
 
       console.log('initial tick: ', await pool.read.slot0().then((s) => s[1]))

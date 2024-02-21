@@ -6,6 +6,7 @@
     "test:devnet": "npm run spawn-devnet && hardhat test --network devnet"
   },
   "devDependencies": {
+    "@nomicfoundation/hardhat-toolbox": "^4.0.0",
     "@nomicfoundation/hardhat-toolbox-viem": "^2.0.0",
     "@tenderly/hardhat-tenderly": "^2.2.1",
     "@typescript-eslint/eslint-plugin": "^7.0.2",
