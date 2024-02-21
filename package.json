@@ -1,0 +1,21 @@
+{
+  "name": "hardhat-project",
+  "scripts": {
+    "compile": "hardhat compile",
+    "spawn-devnet": "ts-node tasks/spawn-devnet.ts",
+    "test:devnet": "npm run spawn-devnet && hardhat test --network devnet"
+  },
+  "devDependencies": {
+    "@nomicfoundation/hardhat-toolbox-viem": "^2.0.0",
+    "@tenderly/hardhat-tenderly": "^2.2.1",
+    "@typescript-eslint/eslint-plugin": "^7.0.2",
+    "@typescript-eslint/parser": "^7.0.2",
+    "dotenv": "^16.4.5",
+    "eslint": "^8.56.0",
+    "hardhat": "^2.20.1",
+    "prettier": "^3.2.5"
+  },
+  "dependencies": {
+    "@uniswap/v3-periphery": "github:Uniswap/v3-periphery#0.8"
+  }
+}
