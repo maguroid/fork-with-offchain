@@ -19,7 +19,7 @@ describe('devnet integration', function () {
       '0xC6962004f452bE9203591991D15f6b388e09E8D0',
     )
 
-    const deal = async (
+    const dealErc20 = async (
       token: `0x${string}`,
       to: `0x${string}`,
       amount: bigint,
@@ -28,6 +28,14 @@ describe('devnet integration', function () {
         // @ts-expect-error the method is not typed
         method: 'tenderly_setErc20Balance',
         params: [token, to, numberToHex(amount)],
+      })
+    }
+
+    const dealEth = async (to: `0x${string}`, amount: bigint) => {
+      return publicClient.request({
+        // @ts-expect-error the method is not typed
+        method: 'tenderly_setBalance',
+        params: [to, numberToHex(amount)],
       })
     }
 
@@ -41,6 +49,9 @@ describe('devnet integration', function () {
       await wethERC20.write.approve([router.address, maxUint256])
       await usdcERC20.write.approve([router.address, maxUint256])
 
+      // for gas price
+      dealEth(account1.account.address, maxUint256)
+
       let spotTick = await pool.read.slot0().then((s) => s[1])
       let wethSwapAmount = parseEther('1000')
       let usdcSwapAmount = parseUnits('1000000', 6)
@@ -52,8 +63,8 @@ describe('devnet integration', function () {
       const swap = async (forToken0: boolean) => {
         console.log('swap', swapCount++, forToken0 ? 'usdc' : 'weth')
         if (forToken0)
-          await deal(usdc, account1.account.address, usdcSwapAmount)
-        else await deal(weth, account1.account.address, wethSwapAmount)
+          await dealErc20(usdc, account1.account.address, usdcSwapAmount)
+        else await dealErc20(weth, account1.account.address, wethSwapAmount)
 
         return router.write.exactInputSingle([
           {
@@ -87,17 +98,21 @@ describe('devnet integration', function () {
 
       while (spotTick !== targetTick) {
         if (spotTick < targetTick) {
-          await swap(true)
-          spotTick = await pool.read.slot0().then((s) => s[1])
+          while (spotTick < targetTick) {
+            await swap(true)
+            spotTick = await pool.read.slot0().then((s) => s[1])
+            console.log('spotTick', spotTick)
+          }
           usdcSwapAmount >>= 1n
-          console.log('spotTick', spotTick)
         }
 
         if (spotTick > targetTick) {
-          await swap(false)
-          spotTick = await pool.read.slot0().then((s) => s[1])
+          while (targetTick < spotTick) {
+            await swap(false)
+            spotTick = await pool.read.slot0().then((s) => s[1])
+            console.log('spotTick', spotTick)
+          }
           wethSwapAmount >>= 1n
-          console.log('spotTick', spotTick)
         }
       }
     }
@@ -111,7 +126,7 @@ describe('devnet integration', function () {
   }
 
   describe('uniswap v3', function () {
-    it.skip('should swap fast', async function () {
+    it('should swap fast', async function () {
       const { pool, movePrice } = await loadFixture(tenderlySetupFixture)
 
       console.log('initial tick: ', await pool.read.slot0().then((s) => s[1]))
@@ -119,6 +134,6 @@ describe('devnet integration', function () {
       await movePrice(500)
 
       console.log('final tick: ', await pool.read.slot0().then((s) => s[1]))
-    })
+    }).timeout(100000)
   })
 })
